@@ -12,4 +12,5 @@ python ./main.py \
     --db-password="${DB_PASSWORD}" \
     --db-name="${DB_NAME}" \
     --slack-channel="${SLACK_CHANNEL}" \
-    --interval-seconds=${INTERVAL_SECONDS}
+    --interval-seconds=${INTERVAL_SECONDS} \
+    --size-threshold-mb=${SIZE_THRESHOLD_MB}

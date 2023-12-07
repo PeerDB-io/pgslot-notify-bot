@@ -10,6 +10,7 @@ REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn()
 
 # Slack client initialization
 slack_token = os.environ["SLACK_BOT_TOKEN"]
+customer_name = os.environ["CUSTOMER_NAME"]
 client = WebClient(token=slack_token)
 
 def query_replication_slot_size(conn):
@@ -20,7 +21,7 @@ def query_replication_slot_size(conn):
 
 def post_message_to_slack(channel, message):
     try:
-        response = client.chat_postMessage(channel=channel, text=message)
+        response = client.chat_postMessage(channel=channel, text=message, parse="full", link_names=True)
     except SlackApiError as e:
         print(f"Error posting to Slack: {e.response['error']}")
 
@@ -31,8 +32,9 @@ def post_message_to_slack(channel, message):
 @click.option('--db-password', default='password', help='Database password.')
 @click.option('--db-name', default='dbname', help='Database name.')
 @click.option('--slack-channel', default='#general', help='Slack channel to post messages to.')
+@click.option('--size-threshold-mb', default=100, type=int, help='Size threshold in MB for triggering a Slack notification.')
 @click.option('--interval-seconds', default=60, help='Interval in seconds between each check.')
-def main(db_host, db_port, db_user, db_password, db_name, slack_channel, interval_seconds):
+def main(db_host, db_port, db_user, db_password, db_name, slack_channel, interval_seconds, size_threshold_mb):
     conn = psycopg2.connect(
         host=db_host,
         port=db_port,
@@ -46,8 +48,9 @@ def main(db_host, db_port, db_user, db_password, db_name, slack_channel, interva
         for slot in slots:
             slot_name, size = slot
             size_mb = size / 1024 / 1024
-            if size_mb > 100:
-                post_message_to_slack(slack_channel, f"Replication slot '{slot_name}' size is over 100MB: {size_mb} MB")
+            if size_mb > size_threshold_mb:
+                msg = f"[{customer_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
+                post_message_to_slack(slack_channel, msg)
 
         time.sleep(interval_seconds)
         conn.close()
