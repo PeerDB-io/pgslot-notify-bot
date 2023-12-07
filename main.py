@@ -49,7 +49,10 @@ def main(db_host, db_port, db_user, db_password, db_name, slack_channel, interva
             slot_name, size = slot
             size_mb = size / 1024 / 1024
             if size_mb > size_threshold_mb:
-                msg = f"[{customer_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
+                msg = f"☠️ [{customer_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
+                post_message_to_slack(slack_channel, msg)
+            else:
+                msg = f"🎅 [{customer_name}] Replication slot '{slot_name}' size is {size_mb} MB."
                 post_message_to_slack(slack_channel, msg)
 
         time.sleep(interval_seconds)
