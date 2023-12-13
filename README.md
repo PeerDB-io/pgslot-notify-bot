@@ -4,6 +4,10 @@
 
 `pgslot-notify-bot` is a tool designed to monitor PostgreSQL replication slots. It provides notifications if a replication slot grows beyond a specified size. This is particularly useful for database administrators and teams who need to keep an eye on replication slot sizes to prevent issues related to disk space and replication lag.
 
+## Screenshot
+
+![Screenshot](img/pg-notify-bot-img.png)
+
 ## Prerequisites
 
 Before setting up `pgslot-notify-bot`, ensure you have:

@@ -6,7 +6,7 @@ from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 # PostgreSQL query to get replication slot size
-REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) AS replication_lag_bytes FROM pg_replication_slots;"
+REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn) AS replication_lag_bytes FROM pg_replication_slots;"
 
 # Slack client initialization
 slack_token = os.environ["SLACK_BOT_TOKEN"]
