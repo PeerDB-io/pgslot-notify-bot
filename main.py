@@ -10,7 +10,7 @@ REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn()
 
 # Slack client initialization
 slack_token = os.environ["SLACK_BOT_TOKEN"]
-customer_name = os.environ["CUSTOMER_NAME"]
+deployment_name = os.environ["DEPLOYMENT_NAME"]
 client = WebClient(token=slack_token)
 
 
@@ -72,10 +72,10 @@ def main(
             slot_name, size = slot
             size_mb = size / 1024 / 1024
             if size_mb > size_threshold_mb:
-                msg = f"☠️ [{customer_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
+                msg = f"☠️ [{deployment_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
                 post_message_to_slack(slack_channel, msg)
             else:
-                msg = f"🎅 [{customer_name}] Replication slot '{slot_name}' size is {size_mb} MB."
+                msg = f"🎅 [{deployment_name}] Replication slot '{slot_name}' size is {size_mb} MB."
                 post_message_to_slack(slack_channel, msg)
 
         conn.close()
