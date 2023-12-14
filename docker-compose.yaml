@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  pgslot-notify-bot:
+    build: .
+    image: pgslot-notify-bot
+    stdin_open: true
+    tty: true
+    environment:
+      - DEPLOYMENT_NAME=${DEPLOYMENT_NAME}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_CHANNEL=${SLACK_CHANNEL}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - INTERVAL_SECONDS=${INTERVAL_SECONDS}
+      - SIZE_THRESHOLD_MB=${SIZE_THRESHOLD_MB}
