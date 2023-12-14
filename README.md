@@ -67,10 +67,6 @@ Once the bot is running, it will automatically check the size of the PostgreSQL 
 
 Contributions to `pgslot-notify-bot` are welcome. Please feel free to submit pull requests or open issues to discuss proposed changes or enhancements.
 
-## License
-
-Specify your project's license here.
-
 ## Contact
 
 For support or queries, contact [contact@peerdb.io](mailto:contact@peerdb.io).
