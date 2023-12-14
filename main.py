@@ -1,7 +1,7 @@
 import click
 import psycopg2
-import os
-import time
+from os import environ
+from time import sleep
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
@@ -9,8 +9,8 @@ from slack_sdk.errors import SlackApiError
 REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn) AS replication_lag_bytes FROM pg_replication_slots;"
 
 # Slack client initialization
-slack_token = os.environ["SLACK_BOT_TOKEN"]
-deployment_name = os.environ["DEPLOYMENT_NAME"]
+slack_token = environ["SLACK_BOT_TOKEN"]
+deployment_name = environ["DEPLOYMENT_NAME"]
 client = WebClient(token=slack_token)
 
 
@@ -43,7 +43,7 @@ def post_message_to_slack(channel, message):
     "--size-threshold-mb",
     default=100,
     type=int,
-    help="Size threshold in MB for triggering a Slack notification.",
+    help="Size threshold in MiB for triggering a Slack notification.",
 )
 @click.option(
     "--interval-seconds", default=60, help="Interval in seconds between each check."
@@ -59,28 +59,20 @@ def main(
     size_threshold_mb,
 ):
     while True:
-        conn = psycopg2.connect(
-            host=db_host,
-            port=db_port,
-            user=db_user,
-            password=db_password,
-            dbname=db_name,
-        )
-        print(f"Connected to database '{db_name}' on '{db_host}'")
-        slots = query_replication_slot_size(conn)
-        for slot in slots:
-            slot_name, size = slot
-            size_mb = size / 1024 / 1024
-            if size_mb > size_threshold_mb:
-                msg = f"☠️ [{deployment_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MB: {size_mb} MB. cc: @channel"
-                post_message_to_slack(slack_channel, msg)
-            else:
-                msg = f"🎅 [{deployment_name}] Replication slot '{slot_name}' size is {size_mb} MB."
-                post_message_to_slack(slack_channel, msg)
+        with psycopg2.connect(host=db_host, port=db_port, user=db_user, password=db_password, dbname=db_name) as conn:
+            print(f"Connected to database '{db_name}' on '{db_host}'")
+            slots = query_replication_slot_size(conn)
+            for slot_name, size in slots:
+                size_mb = size / 1024 / 1024
+                if size_mb > size_threshold_mb:
+                    msg = f"☠️ [{deployment_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MiB: {size_mb:.2f}MiB. cc: @channel"
+                    post_message_to_slack(slack_channel, msg)
+                else:
+                    msg = f"🎅 [{deployment_name}] Replication slot '{slot_name}' size is {size_mb:.2f}MiB."
+                    post_message_to_slack(slack_channel, msg)
 
-        conn.close()
         print(f"Disconnected from database '{db_name}' on '{db_host}'")
-        time.sleep(interval_seconds)
+        sleep(interval_seconds)
 
 
 if __name__ == "__main__":
