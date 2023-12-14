@@ -1,11 +1,11 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 set -a
 source .env
 set +a
 
-python ./main.py \
+exec python ./main.py \
     --db-host="${DB_HOST}" \
     --db-port="${DB_PORT}" \
     --db-user="${DB_USER}" \
