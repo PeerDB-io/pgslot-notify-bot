@@ -4,6 +4,7 @@ from os import environ
 from time import sleep
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import re
 
 # PostgreSQL query to get replication slot size
 REPLICATION_SLOT_QUERY = "SELECT slot_name, pg_wal_lsn_diff(pg_current_wal_lsn(), confirmed_flush_lsn) AS replication_lag_bytes FROM pg_replication_slots;"
@@ -48,6 +49,11 @@ def post_message_to_slack(channel, message):
 @click.option(
     "--interval-seconds", default=60, help="Interval in seconds between each check."
 )
+@click.option(
+    "--slot-filter-regexp",
+    default=".*",
+    help="Regular expression to filter slots by name.",
+)
 def main(
     db_host,
     db_port,
@@ -57,18 +63,34 @@ def main(
     slack_channel,
     interval_seconds,
     size_threshold_mb,
+    slot_filter_regexp,
 ):
+    compiled_slot_filter_regexp = re.compile(slot_filter_regexp)
     while True:
-        with psycopg2.connect(host=db_host, port=db_port, user=db_user, password=db_password, dbname=db_name) as conn:
+        with psycopg2.connect(
+            host=db_host,
+            port=db_port,
+            user=db_user,
+            password=db_password,
+            dbname=db_name,
+        ) as conn:
             print(f"Connected to database '{db_name}' on '{db_host}'")
             try:
-              slots = query_replication_slot_size(conn)
+                slots = query_replication_slot_size(conn)
             except psycopg2.Error as e:
-                post_message_to_slack(slack_channel, f"🔥 [{deployment_name}] Error querying replication slots: {e}")
+                post_message_to_slack(
+                    slack_channel,
+                    f"🔥 [{deployment_name}] Error querying replication slots: {e},
+                ")
                 continue
             for slot_name, size in slots:
+                if not compiled_slot_filter_regexp.match(slot_name):
+                    continue
                 if size is None:
-                    post_message_to_slack(slack_channel, f"⚠️ [{deployment_name}] Replication slot '{slot_name}' size is NULL.")
+                    post_message_to_slack(
+                        slack_channel,
+                        f"⚠️ [{deployment_name}] Replication slot '{slot_name}' size is NULL.",
+                    )
                     continue
                 size_mb = size / 1024 / 1024
                 if size_mb > size_threshold_mb:

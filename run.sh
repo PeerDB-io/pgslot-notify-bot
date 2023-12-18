@@ -13,4 +13,5 @@ exec python ./main.py \
     --db-name="${DB_NAME}" \
     --slack-channel="${SLACK_CHANNEL}" \
     --interval-seconds=${INTERVAL_SECONDS} \
-    --size-threshold-mb=${SIZE_THRESHOLD_MB}
+    --size-threshold-mb=${SIZE_THRESHOLD_MB} \
+    --slot-filter-regexp="${SLOT_FILTER_REGEXP}"
