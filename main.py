@@ -61,7 +61,11 @@ def main(
     while True:
         with psycopg2.connect(host=db_host, port=db_port, user=db_user, password=db_password, dbname=db_name) as conn:
             print(f"Connected to database '{db_name}' on '{db_host}'")
-            slots = query_replication_slot_size(conn)
+            try:
+              slots = query_replication_slot_size(conn)
+            except psycopg2.Error as e:
+                post_message_to_slack(slack_channel, f"🔥 [{deployment_name}] Error querying replication slots: {e}")
+                continue
             for slot_name, size in slots:
                 size_mb = size / 1024 / 1024
                 if size_mb > size_threshold_mb:
