@@ -5,4 +5,4 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 USER appuser
 COPY . .
-CMD run.sh
+CMD [ "bash", "./run_docker.sh" ]
