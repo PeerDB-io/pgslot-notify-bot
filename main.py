@@ -80,8 +80,8 @@ def main(
             except psycopg2.Error as e:
                 post_message_to_slack(
                     slack_channel,
-                    f"🔥 [{deployment_name}] Error querying replication slots: {e},
-                ")
+                    f"🔥 [{deployment_name}] Error querying replication slots: {e}.",
+                )
                 continue
             for slot_name, size in slots:
                 if not compiled_slot_filter_regexp.match(slot_name):
