@@ -67,6 +67,9 @@ def main(
                 post_message_to_slack(slack_channel, f"🔥 [{deployment_name}] Error querying replication slots: {e}")
                 continue
             for slot_name, size in slots:
+                if size is None:
+                    post_message_to_slack(slack_channel, f"⚠️ [{deployment_name}] Replication slot '{slot_name}' size is NULL.")
+                    continue
                 size_mb = size / 1024 / 1024
                 if size_mb > size_threshold_mb:
                     msg = f"☠️ [{deployment_name}] Replication slot '{slot_name}' size is over {size_threshold_mb}MiB: {size_mb:.2f}MiB. cc: @channel"
